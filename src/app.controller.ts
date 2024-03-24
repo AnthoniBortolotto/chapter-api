@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Body, Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
 
 @Controller()
@@ -6,8 +6,8 @@ export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Get()
-  getGptChatAnswer(): string {
-    return this.appService.getHello();
+  async getGptChatAnswer(@Body() body: any): Promise<string> {
+    return await this.appService.completeChat(body.input);
   }
   @Get('image')
   getImageAnswer(): string {
