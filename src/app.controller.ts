@@ -1,5 +1,8 @@
-import { Body, Controller, Get } from '@nestjs/common';
+import { Body, Controller, Get, Res } from '@nestjs/common';
 import { AppService } from './app.service';
+import { join } from 'path';
+import { createReadStream } from 'fs';
+import { Response } from 'express';
 
 @Controller()
 export class AppController {
@@ -10,12 +13,13 @@ export class AppController {
     return await this.appService.completeChat(body.input);
   }
   @Get('image')
-  getImageAnswer(): string {
-    return this.appService.getHello();
+  getImageAnswer(@Body() body) {
+    return this.appService.generateImage(body.prompt);
   }
   @Get('edit-image')
-  getEditImageAnswer(): string {
-    return this.appService.getHello();
+  getEditImageAnswer(@Body() body: any) {
+    console.log('body:', body);
+    return this.appService.editImage(body?.prompt);
   }
   @Get('transcription')
   getTranscriptionAnswer(): string {
