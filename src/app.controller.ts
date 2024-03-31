@@ -9,7 +9,7 @@ export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Get()
-  async getGptChatAnswer(@Body() body: any): Promise<string> {
+  async getGptChatAnswer(@Body() body: any){
     return await this.appService.completeChat(body.input);
   }
   @Get('image')
@@ -22,11 +22,15 @@ export class AppController {
     return this.appService.editImage(body?.prompt);
   }
   @Get('transcription')
-  getTranscriptionAnswer(): string {
-    return this.appService.getHello();
+  async getTranscriptionAnswer() {
+    return await this.appService.SpeechToText();
+  }
+  @Get('translation')
+  async getTranslationAnswer() {
+    return await this.appService.Translation();
   }
   @Get('text-to-speech')
-  getTextToSpeechAnswer(): string {
-    return this.appService.getHello();
+  async getTextToSpeechAnswer(@Body() body: any) {
+    return await this.appService.textToSpeech(body.prompt, body.filename, body.speed);
   }
 }

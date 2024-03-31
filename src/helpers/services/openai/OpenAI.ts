@@ -1,5 +1,5 @@
 import { InternalServerErrorException } from '@nestjs/common';
-import { createReadStream } from 'fs';
+import { createReadStream, promises } from 'fs';
 import { InternalServerError, OpenAI } from 'openai';
 import { join } from 'path';
 
@@ -17,50 +17,48 @@ export class OpenAIClient {
     const response = await this.instance.chat.completions
       .create({
         messages: [
-          {
+          /*  {
             role: 'system',
             content:
               'Você é um assistente que retorna um json com um objeto data com um array de 10 strings com palavras em maiusculo com a letra fornecida pelo usuário',
             name: 'Jonh',
-          },
+          }, */
           { role: 'user', content: input },
         ],
         response_format: {
-          type: 'json_object',
+          type: 'text',
         },
-        /*         tools: [
+        tools: [
           {
             type: 'function',
             function: {
-              name: 'covertToUpperCase',
-              description:
-                'Must use it to convert the words to uppercase, all of them should be in uppercase',
+              name: 'get_current_weather',
+              description: 'Get the current weather in a given location',
               parameters: {
                 type: 'object',
-                required: ['word'],
                 properties: {
-                  word: {
+                  location: {
                     type: 'string',
-                    description: 'Word to be converted to uppercase',
+                    description: 'The city and state, e.g. San Francisco, CA',
+                  },
+                  unit: {
+                    type: 'string',
+                    enum: ['celsius', 'fahrenheit'],
                   },
                 },
+                required: ['location'],
               },
             },
           },
         ],
-        tool_choice: {
-          type: 'function',
-          function: {
-            name: 'covertToUpperCase',
-          },
-        }, */
+        tool_choice: 'auto',
         model: 'gpt-3.5-turbo',
       })
       .catch((error) => {
         console.log('error:', error);
         throw new InternalServerErrorException('Error on OpenAI');
       });
-    return response.choices[0].message.content;
+    return response;
   }
   public async getImageAnswer(prompt: string) {
     const response = await this.instance.images
@@ -81,7 +79,9 @@ export class OpenAIClient {
   public async getEditImageAnswer(prompt: string) {
     const file = createReadStream(join(process.cwd(), 'assets', 'editar.png'));
 
-    const maskFile = createReadStream(join(process.cwd(), 'assets', 'mask.png'));
+    const maskFile = createReadStream(
+      join(process.cwd(), 'assets', 'mask.png'),
+    );
     const response = await this.instance.images
       .edit({
         image: file,
@@ -98,7 +98,9 @@ export class OpenAIClient {
   }
   public async getImageVariation() {
     console.log('getImageVariation');
-    const file = await createReadStream(join(process.cwd(), 'assets', 'exemplo.png'));
+    const file = await createReadStream(
+      join(process.cwd(), 'assets', 'exemplo.png'),
+    );
     const response = await this.instance.images
       .createVariation({
         image: file,
@@ -110,13 +112,62 @@ export class OpenAIClient {
         console.log('error:', error);
         throw new InternalServerErrorException('Error on OpenAI');
       });
-      console.log('response:', response);
+    console.log('response:', response);
     return response;
   }
-  public getTranscriptionAnswer(): string {
-    return 'Hello World!';
+  public async getTranscriptionAnswer() {
+    const file = createReadStream(
+      join(process.cwd(), 'assets', 'transcription.mp3'),
+    );
+    const response = await this.instance.audio.transcriptions.create({
+      file: file,
+      model: 'whisper-1',
+      response_format: 'verbose_json',
+      language: 'pt',
+      temperature: 0.5,
+      timestamp_granularities: ['word'],
+    });
+    return response;
   }
-  public getTextToSpeechAnswer(): string {
-    return 'Hello World!';
+  public async getTranslationAnswer() {
+    const file = createReadStream(
+      join(process.cwd(), 'assets', 'transcription.mp3'),
+    );
+    const response = await this.instance.audio.translations
+      .create({
+        file: file,
+        model: 'whisper-1',
+        response_format: 'json',
+      })
+      .catch((error) => {
+        console.log('error:', error);
+        throw new InternalServerErrorException('Error on OpenAI');
+      });
+    return response;
+  }
+  public async getTextToSpeechAnswer(
+    textToSpeech: string,
+    filename: string,
+    speed = 1,
+  ) {
+    const response = await this.instance.audio.speech
+      .create({
+        model: 'tts-1',
+        input: textToSpeech,
+        voice: 'shimmer',
+        response_format: 'mp3',
+        speed: speed,
+      })
+      .catch((error) => {
+        console.log('error:', error);
+        throw new InternalServerErrorException('Error on OpenAI');
+      });
+    const buffer = Buffer.from(await response.arrayBuffer());
+    await promises
+      .writeFile(join(process.cwd(), 'assets', `${filename}.mp3`), buffer)
+      .catch((error) => {
+        console.log('error:', error);
+        throw new InternalServerErrorException('Error on write file');
+      });
   }
 }
