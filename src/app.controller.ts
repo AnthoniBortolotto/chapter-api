@@ -1,28 +1,36 @@
-import { Controller, Get } from '@nestjs/common';
+import { Body, Controller, Get, Res } from '@nestjs/common';
 import { AppService } from './app.service';
+import { join } from 'path';
+import { createReadStream } from 'fs';
+import { Response } from 'express';
 
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Get()
-  getGptChatAnswer(): string {
-    return this.appService.getHello();
+  async getGptChatAnswer(@Body() body: any){
+    return await this.appService.completeChat(body.input);
   }
   @Get('image')
-  getImageAnswer(): string {
-    return this.appService.getHello();
+  getImageAnswer(@Body() body) {
+    return this.appService.generateImage(body.prompt);
   }
   @Get('edit-image')
-  getEditImageAnswer(): string {
-    return this.appService.getHello();
+  getEditImageAnswer(@Body() body: any) {
+    console.log('body:', body);
+    return this.appService.editImage(body?.prompt);
   }
   @Get('transcription')
-  getTranscriptionAnswer(): string {
-    return this.appService.getHello();
+  async getTranscriptionAnswer() {
+    return await this.appService.SpeechToText();
+  }
+  @Get('translation')
+  async getTranslationAnswer() {
+    return await this.appService.Translation();
   }
   @Get('text-to-speech')
-  getTextToSpeechAnswer(): string {
-    return this.appService.getHello();
+  async getTextToSpeechAnswer(@Body() body: any) {
+    return await this.appService.textToSpeech(body.prompt, body.filename, body.speed);
   }
 }
