@@ -8,6 +8,8 @@ Repository from the Compass.uol chapter presentation, the repository have exampl
 $ pnpm install
 ```
 
+Create the .env file with your own OPEN_AI_KEY
+
 ## Running the app
 
 ```bash
