@@ -10,8 +10,6 @@ RUN pnpm install
 
 COPY . .
 
-ENV OPEN_AI_KEY=$OPEN_AI_KEY
-
 RUN pnpm run build
 
 CMD [ "pnpm", "run", "start" ]

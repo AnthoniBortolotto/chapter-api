@@ -6,6 +6,8 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: nest-docker
+    env_file:
+      - .env
     environment:
       - PORT=${PORT}
       - OPEN_AI_KEY=${OPEN_AI_KEY}
