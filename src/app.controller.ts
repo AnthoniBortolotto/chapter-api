@@ -7,6 +7,9 @@ export class AppController {
 
   @Get()
   getHello() {
+    console.log('Este é o env', process.env);
+    console.log('Este é a key', process.env.OPENAI_API_KEY);
+    console.log('Este é a porta', process.env.PORT);
     return { message: 'Hello World!' };
   }
   @Get('chat')
